@@ -78,4 +78,3 @@ The following technologies/frameworks are mandatory:
 • Maven for the dependencies between the modules besides the other proprietary libraries.
 • Logging possibility via log4j.
 • Swagger.
-Bonus: JUnit Tests
