@@ -2,9 +2,7 @@ package com.sample.demo.controller;
 
 import com.sample.demo.dto.auth.JwtResponse;
 import com.sample.demo.dto.auth.LoginRequest;
-import com.sample.demo.dto.user.UserCreateRequest;
 import com.sample.demo.model.entity.User;
-import com.sample.demo.model.enums.UserRole;
 import com.sample.demo.repository.UserRepository;
 import com.sample.demo.security.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,34 +56,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid username or password");
         }
-    }
-
-    @PostMapping("/register")
-    @Operation(summary = "Register new user", description = "Create a new user account")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserCreateRequest registerRequest) {
-        if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            return ResponseEntity.badRequest()
-                    .body("Error: Username is already taken!");
-        }
-
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity.badRequest()
-                    .body("Error: Email is already in use!");
-        }
-
-        // Create new user's account
-        User user = new User();
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setEmail(registerRequest.getEmail());
-        user.setFirstName(registerRequest.getFirstName());
-        user.setLastName(registerRequest.getLastName());
-        user.setRole(registerRequest.getRole());
-        user.setEnabled(true);
-
-        userRepository.save(user);
-
-        return ResponseEntity.ok("User registered successfully!");
     }
 
     @PostMapping("/refresh")

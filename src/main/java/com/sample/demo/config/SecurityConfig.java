@@ -4,6 +4,7 @@ import com.sample.demo.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -36,9 +37,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/items/**").authenticated()
                 .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
-                .requestMatchers("/api/manager/**").hasAnyRole("WAREHOUSE_MANAGER", "SYSTEM_ADMIN")
-                .requestMatchers("/api/client/**").hasAnyRole("CLIENT", "WAREHOUSE_MANAGER", "SYSTEM_ADMIN")
+                .requestMatchers("/api/manager/**").hasRole("WAREHOUSE_MANAGER")
+                .requestMatchers("/api/client/**").hasRole("CLIENT")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

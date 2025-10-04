@@ -76,14 +76,4 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
     }
 
-    @PatchMapping("/{id}/enable")
-    @Operation(summary = "Enable/Disable user", description = "Enable or disable a user account")
-    public ResponseEntity<ApiResponse<Void>> toggleUserStatus(
-            @PathVariable Long id,
-            @RequestParam boolean enabled) {
-
-        userService.enableUser(id, enabled);
-        String status = enabled ? "enabled" : "disabled";
-        return ResponseEntity.ok(ApiResponse.success("User " + status + " successfully", null));
-    }
 }

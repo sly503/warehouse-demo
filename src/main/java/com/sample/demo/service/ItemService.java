@@ -13,9 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,43 +33,6 @@ public class ItemService {
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
         return mapToDTO(item);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ItemDTO> searchItemsByName(String name) {
-        log.info("Searching items with name containing: {}", name);
-        return itemRepository.findByItemNameContainingIgnoreCase(name).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ItemDTO> getAvailableItems() {
-        log.info("Fetching items with quantity greater than 0");
-        return itemRepository.findByQuantityGreaterThan(0).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ItemDTO> getLowStockItems(Integer threshold) {
-        log.info("Fetching items with quantity less than: {}", threshold);
-        return itemRepository.findLowStockItems(threshold).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public boolean checkAvailability(Long itemId, Integer requestedQuantity) {
-        log.info("Checking availability for item {} with requested quantity: {}", itemId, requestedQuantity);
-
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item", "id", itemId));
-
-        boolean available = item.getQuantity() >= requestedQuantity;
-        log.info("Item {} availability check result: {}", itemId, available);
-
-        return available;
     }
 
     @Transactional
@@ -147,24 +107,6 @@ public class ItemService {
 
         itemRepository.deleteById(id);
         log.info("Item deleted successfully with id: {}", id);
-    }
-
-    @Transactional
-    public void updateItemQuantity(Long id, Integer quantityChange) {
-        log.info("Updating quantity for item {} by: {}", id, quantityChange);
-
-        Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
-
-        int newQuantity = item.getQuantity() + quantityChange;
-        if (newQuantity < 0) {
-            throw new BadRequestException("Insufficient item quantity. Available: " + item.getQuantity());
-        }
-
-        item.setQuantity(newQuantity);
-        itemRepository.save(item);
-
-        log.info("Item {} quantity updated from {} to {}", id, item.getQuantity() - quantityChange, newQuantity);
     }
 
     private ItemDTO mapToDTO(Item item) {

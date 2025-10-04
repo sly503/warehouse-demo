@@ -5,7 +5,6 @@ import com.sample.demo.dto.user.UserResponse;
 import com.sample.demo.exception.DuplicateResourceException;
 import com.sample.demo.exception.ResourceNotFoundException;
 import com.sample.demo.model.entity.User;
-import com.sample.demo.model.enums.UserRole;
 import com.sample.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,14 +34,6 @@ public class UserService {
         log.info("Fetching user with id: {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        return mapToResponse(user);
-    }
-
-    @Transactional(readOnly = true)
-    public UserResponse getUserByUsername(String username) {
-        log.info("Fetching user with username: {}", username);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
         return mapToResponse(user);
     }
 
@@ -122,27 +110,6 @@ public class UserService {
 
         userRepository.deleteById(id);
         log.info("User deleted successfully with id: {}", id);
-    }
-
-    @Transactional
-    public void enableUser(Long id, boolean enabled) {
-        log.info("Setting user {} enabled status to: {}", id, enabled);
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-
-        user.setEnabled(enabled);
-        userRepository.save(user);
-
-        log.info("User {} enabled status updated to: {}", id, enabled);
-    }
-
-    @Transactional(readOnly = true)
-    public List<UserResponse> getUsersByRole(UserRole role) {
-        log.info("Fetching users with role: {}", role);
-        return userRepository.findByRole(role).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
     }
 
     private UserResponse mapToResponse(User user) {

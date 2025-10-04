@@ -14,10 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,43 +29,11 @@ public class TruckService {
     }
 
     @Transactional(readOnly = true)
-    public List<TruckDTO> getAllTrucks() {
-        log.info("Fetching all trucks");
-        return truckRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
     public TruckDTO getTruckById(Long id) {
         log.info("Fetching truck with id: {}", id);
         Truck truck = truckRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Truck", "id", id));
         return mapToDTO(truck);
-    }
-
-    @Transactional(readOnly = true)
-    public List<TruckDTO> getAvailableTrucks() {
-        log.info("Fetching available trucks");
-        return truckRepository.findByAvailable(true).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<TruckDTO> getAvailableTrucksForDate(LocalDate date) {
-        log.info("Fetching trucks available on date: {}", date);
-        return truckRepository.findTrucksAvailableOnDate(date).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<TruckDTO> getAvailableTrucksWithMinVolume(Double requiredVolume) {
-        log.info("Fetching available trucks with minimum volume: {}", requiredVolume);
-        return truckRepository.findAvailableTrucksWithMinVolume(requiredVolume).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -151,19 +115,6 @@ public class TruckService {
 
         truckRepository.deleteById(id);
         log.info("Truck deleted successfully with id: {}", id);
-    }
-
-    @Transactional
-    public void setTruckAvailability(Long id, boolean available) {
-        log.info("Setting truck {} availability to: {}", id, available);
-
-        Truck truck = truckRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Truck", "id", id));
-
-        truck.setAvailable(available);
-        truckRepository.save(truck);
-
-        log.info("Truck {} availability updated to: {}", id, available);
     }
 
     private TruckDTO mapToDTO(Truck truck) {
