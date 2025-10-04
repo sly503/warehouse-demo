@@ -18,7 +18,13 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
 
   main:
     allow-bean-definition-overriding: true
@@ -41,12 +47,12 @@ spring:
     compose:
       enabled: true
       file: docker-compose.yml
-      profiles:
-        active: mysql
 
 jwt:
-  secret: secret-key-change-this-in-production-make-it-long-and-secure
-  expiration: 86400000
+  secret: mySecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmRequirement12345
+  expiration: 86400000 # 24 hours in milliseconds
+  refresh:
+    expiration: 604800000 # 7 days in milliseconds
 
 management:
   endpoints:
@@ -68,3 +74,31 @@ management:
       access: unrestricted
 tracing:
   url: http://localhost:4317
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.sample.demo: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/warehouse-app.log
+    max-size: 10MB
+    max-history: 10
+
+# Swagger/OpenAPI configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha

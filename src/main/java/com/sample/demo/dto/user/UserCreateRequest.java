@@ -1,4 +1,4 @@
-package com.sample.demo.dto.auth;
+package com.sample.demo.dto.user;
 
 import com.sample.demo.model.enums.UserRole;
 import jakarta.validation.constraints.Email;
@@ -8,10 +8,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class UserCreateRequest {
 
     @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
 
     @NotBlank(message = "Password is required")
@@ -22,10 +22,10 @@ public class RegisterRequest {
     @Email(message = "Email must be valid")
     private String email;
 
+    @NotNull(message = "Role is required")
+    private UserRole role;
+
     private String firstName;
 
     private String lastName;
-
-    @NotNull(message = "Role is required")
-    private UserRole role;
 }

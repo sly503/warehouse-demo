@@ -21,8 +21,6 @@ services:
   mysql:
     container_name: warehouse-mysql
     image: mysql:8.0
-    profiles:
-      - mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: warehouse
@@ -32,6 +30,8 @@ services:
       - "3307:3306"
     volumes:
       - warehouse-mysql:/var/lib/mysql
+    networks:
+      - temporal-network
 
   postgresql:
     container_name: temporal-postgresql

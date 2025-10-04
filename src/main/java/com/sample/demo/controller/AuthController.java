@@ -2,7 +2,7 @@ package com.sample.demo.controller;
 
 import com.sample.demo.dto.auth.JwtResponse;
 import com.sample.demo.dto.auth.LoginRequest;
-import com.sample.demo.dto.auth.RegisterRequest;
+import com.sample.demo.dto.user.UserCreateRequest;
 import com.sample.demo.model.entity.User;
 import com.sample.demo.model.enums.UserRole;
 import com.sample.demo.repository.UserRepository;
@@ -62,7 +62,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Register new user", description = "Create a new user account")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserCreateRequest registerRequest) {
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             return ResponseEntity.badRequest()
                     .body("Error: Username is already taken!");
@@ -112,5 +112,31 @@ public class AuthController {
             // Invalid refresh token
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Logout user", description = "Logout current user and invalidate token")
+    public ResponseEntity<?> logoutUser() {
+        // In a stateless JWT setup, logout is typically handled client-side
+        // The client should remove the token from storage
+        // Optionally, you can maintain a token blacklist on the server
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logged out successfully!");
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current user", description = "Get currently authenticated user information")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+        }
+
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(JwtResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build());
     }
 }
