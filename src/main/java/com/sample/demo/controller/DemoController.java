@@ -1,8 +1,8 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.controller;
 
-import com.sample.demo.temporal.model.Person;
-import com.sample.demo.temporal.workflows.HelloWorkflow;
-import com.sample.demo.temporal.workflows.MessageWorkflow;
+import com.sample.demo.model.entity.Person;
+import com.sample.demo.workflows.HelloWorkflow;
+import com.sample.demo.workflows.MessageWorkflow;
 import io.temporal.client.WorkflowClient;
 import io.temporal.client.WorkflowOptions;
 import io.temporal.client.WorkflowStub;

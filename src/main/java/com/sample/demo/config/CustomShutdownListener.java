@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.config;
 
 import io.temporal.worker.WorkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

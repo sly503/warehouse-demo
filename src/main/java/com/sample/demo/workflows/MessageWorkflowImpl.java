@@ -1,6 +1,6 @@
-package com.sample.demo.temporal.workflows;
+package com.sample.demo.workflows;
 
-import com.sample.demo.temporal.activities.MessageActivity;
+import com.sample.demo.activities.MessageActivity;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.spring.boot.WorkflowImpl;
 import io.temporal.workflow.Async;

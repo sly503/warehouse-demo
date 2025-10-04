@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.config;
 
 import io.temporal.common.metadata.*;
 import io.temporal.spring.boot.autoconfigure.template.WorkersTemplate;

@@ -18,6 +18,21 @@ services:
     networks:
       - temporal-network
 
+  mysql:
+    container_name: warehouse-mysql
+    image: mysql:8.0
+    profiles:
+      - mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: warehouse
+      MYSQL_USER: warehouse
+      MYSQL_PASSWORD: warehouse
+    ports:
+      - "3307:3306"
+    volumes:
+      - warehouse-mysql:/var/lib/mysql
+
   postgresql:
     container_name: temporal-postgresql
     image: postgres:13
@@ -129,5 +144,6 @@ networks:
     driver: bridge
 
 volumes:
+  warehouse-mysql:
   temporal-postgresql:
   temporal-elasticsearch:

@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.activities;
+package com.sample.demo.activities;
 
 import io.temporal.activity.ActivityInterface;
 

@@ -1,6 +1,6 @@
-package com.sample.demo.temporal.activities;
+package com.sample.demo.activities;
 
-import com.sample.demo.temporal.config.MessageController;
+import com.sample.demo.controller.MessageController;
 import io.temporal.activity.Activity;
 import io.temporal.failure.ApplicationFailure;
 import io.temporal.spring.boot.ActivityImpl;

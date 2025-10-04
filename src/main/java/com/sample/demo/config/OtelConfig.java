@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.config;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;

@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;

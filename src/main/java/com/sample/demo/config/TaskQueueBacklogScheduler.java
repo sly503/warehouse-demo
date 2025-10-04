@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.config;
 
 import com.uber.m3.tally.Scope;
 import io.temporal.api.enums.v1.DescribeTaskQueueMode;

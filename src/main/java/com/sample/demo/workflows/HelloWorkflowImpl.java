@@ -1,7 +1,7 @@
-package com.sample.demo.temporal.workflows;
+package com.sample.demo.workflows;
 
-import com.sample.demo.temporal.activities.HelloActivity;
-import com.sample.demo.temporal.model.Person;
+import com.sample.demo.activities.HelloActivity;
+import com.sample.demo.model.entity.Person;
 import io.temporal.activity.ActivityOptions;
 import io.temporal.spring.boot.WorkflowImpl;
 import io.temporal.workflow.Workflow;

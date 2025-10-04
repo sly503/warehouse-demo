@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.config;
+package com.sample.demo.config;
 
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;

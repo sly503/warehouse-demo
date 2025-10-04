@@ -1,4 +1,4 @@
-package com.sample.demo.temporal.model;
+package com.sample.demo.model.entity;
 
 public class Person {
     private String firstName;
