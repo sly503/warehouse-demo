@@ -1,0 +1,54 @@
+server:
+  port: 8081
+  shutdown: graceful
+spring:
+  application:
+    name: demo
+  main:
+    allow-bean-definition-overriding: true
+  # temporal specific configs
+  temporal:
+    namespace: default
+    connection:
+      target: localhost:7233
+      enable-https: false
+    workersAutoDiscovery:
+      packages: com.sample.demo
+    workers:
+      - task-queue: demoqueue-two
+        capacity:
+          max-concurrent-activity-executors: 2
+        rate-limits:
+          max-worker-activities-per-second: 2
+  # docker deployment
+  docker:
+    compose:
+      enabled: true
+      file: docker-compose.yml
+# temporal cloud config
+# tmprl:
+#   cloud:
+#     key: your-temporal-cloud-key-here
+#     target: us-east-1.aws.api.temporal.io:7233
+#     namespace: your-namespace
+# actuator (sdk metrics)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,temporalworkerinfo,scheduledtasks,shutdown
+    health:
+      group:
+        liveness:
+          include: livenessstate,cacheCheck
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+    enabled: true
+  endpoint:
+    shutdown:
+      access: unrestricted
+tracing:
+  url: http://localhost:4317
