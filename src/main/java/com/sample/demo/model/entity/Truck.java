@@ -27,12 +27,6 @@ public class Truck {
     @Column(nullable = false)
     private Double containerVolume; // in cubic units (e.g., cubic meters)
 
-    private boolean available = true;
-
-    private String driverName;
-
-    private String notes;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

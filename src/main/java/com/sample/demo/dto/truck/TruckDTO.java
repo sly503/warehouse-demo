@@ -14,7 +14,4 @@ public class TruckDTO {
     private String chassisNumber;
     private String licensePlate;
     private Double containerVolume;
-    private boolean available;
-    private String driverName;
-    private String notes;
 }

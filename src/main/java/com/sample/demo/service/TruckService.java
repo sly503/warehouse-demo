@@ -59,9 +59,6 @@ public class TruckService {
         truck.setChassisNumber(request.getChassisNumber());
         truck.setLicensePlate(request.getLicensePlate());
         truck.setContainerVolume(request.getContainerVolume());
-        truck.setAvailable(true);
-        truck.setDriverName(request.getDriverName());
-        truck.setNotes(request.getNotes());
 
         Truck savedTruck = truckRepository.save(truck);
         log.info("Truck created successfully with id: {}", savedTruck.getId());
@@ -96,8 +93,6 @@ public class TruckService {
         truck.setChassisNumber(request.getChassisNumber());
         truck.setLicensePlate(request.getLicensePlate());
         truck.setContainerVolume(request.getContainerVolume());
-        truck.setDriverName(request.getDriverName());
-        truck.setNotes(request.getNotes());
 
         Truck updatedTruck = truckRepository.save(truck);
         log.info("Truck updated successfully with id: {}", updatedTruck.getId());
@@ -123,9 +118,6 @@ public class TruckService {
                 .chassisNumber(truck.getChassisNumber())
                 .licensePlate(truck.getLicensePlate())
                 .containerVolume(truck.getContainerVolume())
-                .available(truck.isAvailable())
-                .driverName(truck.getDriverName())
-                .notes(truck.getNotes())
                 .build();
     }
 }

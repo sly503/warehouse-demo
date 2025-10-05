@@ -18,8 +18,4 @@ public class CreateTruckRequest {
     @NotNull(message = "Container volume is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Container volume must be greater than 0")
     private Double containerVolume;
-
-    private String driverName;
-
-    private String notes;
 }
