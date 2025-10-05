@@ -75,22 +75,7 @@ management:
 tracing:
   url: http://localhost:4317
 
-# Logging configuration
-logging:
-  level:
-    root: INFO
-    com.sample.demo: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/warehouse-app.log
-    max-size: 10MB
-    max-history: 10
+# Logging is configured via log4j2.xml
 
 # Swagger/OpenAPI configuration
 springdoc:

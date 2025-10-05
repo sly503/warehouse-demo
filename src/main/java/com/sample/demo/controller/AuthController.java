@@ -1,10 +1,13 @@
 package com.sample.demo.controller;
 
+import com.sample.demo.dto.auth.ForgotPasswordRequest;
 import com.sample.demo.dto.auth.JwtResponse;
 import com.sample.demo.dto.auth.LoginRequest;
+import com.sample.demo.dto.auth.ResetPasswordRequest;
 import com.sample.demo.model.entity.User;
 import com.sample.demo.repository.UserRepository;
 import com.sample.demo.security.JwtUtils;
+import com.sample.demo.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,7 +18,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,8 +28,8 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticate user and return JWT token")
@@ -108,5 +110,35 @@ public class AuthController {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .build());
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot password", description = "Request a password reset token")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            String token = passwordResetService.createPasswordResetToken(request);
+
+            // In production, send email with reset link
+            return ResponseEntity.ok(new java.util.HashMap<String, String>() {{
+                put("message", "Password reset token generated successfully");
+                put("token", token);
+                put("note", "In production, this token would be sent via email");
+            }});
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error processing password reset request: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password", description = "Reset password using reset token")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.resetPassword(request);
+            return ResponseEntity.ok("Password has been reset successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error resetting password: " + e.getMessage());
+        }
     }
 }
