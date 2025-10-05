@@ -42,6 +42,11 @@ spring:
           max-concurrent-activity-executors: 2
         rate-limits:
           max-worker-activities-per-second: 2
+      - task-queue: order-workflow-worker
+        capacity:
+          max-concurrent-activity-executors: 5
+        rate-limits:
+          max-worker-activities-per-second: 10
   # docker deployment
   docker:
     compose:
