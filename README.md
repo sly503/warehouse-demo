@@ -17,17 +17,23 @@
 # Run application
 mvn spring-boot:run
 ```
+```bash
+# Graceful shutdown
+curl 'http://localhost:8081/actuator/shutdown' -i -X POST
+```
 
 ## Access Points
 
-| Service | URL | Notes |
-|---------|-----|-------|
-| API | http://localhost:8081 | Main application |
-| Swagger UI | http://localhost:8081/swagger-ui.html | API documentation |
-| Temporal UI | http://localhost:8088 | Workflow monitoring |
-| Jaeger | http://localhost:16686 | Distributed tracing |
-| Grafana | http://localhost:8085 | Metrics dashboards |
+| Service | URL | Notes                |
+|---------|-----|----------------------|
+| API | http://localhost:8081 | Main application     |
+| Swagger UI | http://localhost:8081/swagger-ui.html | API documentation    |
+| Temporal UI | http://localhost:8088 | Workflow monitoring  |
+| Jaeger | http://localhost:16686 | Distributed tracing  |
+| Grafana | http://localhost:8085 | Metrics dashboards   |
 | Prometheus | http://localhost:9090 | Metrics queries |
+| Prometheus | http://localhost:8081/actuator/prometheus | Prometheus Metrics     |
+| Worker Info | http://localhost:8081/actuator/temporalworkerinfo | Temporal worker info |
 
 ## Demo Users
 
@@ -39,26 +45,19 @@ All passwords: `password123`
 | manager1 | password123 | WAREHOUSE_MANAGER | Orders, items, trucks, deliveries |
 | client1 | password123 | CLIENT | Create/manage orders |
 
-## Notes
 
-- Database auto-creates schema on startup (`ddl-auto: create-drop`)
-- Sample data loaded from `data.sql`
-- Cronjob runs daily at 00:01 AM
-- Logs: `logs/warehouse-app.log`
+## Order Status Flow
 
-## Troubleshooting
+```
+CREATED
+   ↓ (client submits)
+AWAITING_APPROVAL
+   ↓ (manager approves)         ↓ (manager declines)
+APPROVED                        DECLINED
+   ↓ (manager schedules)           ↓ (client can update & resubmit)
+UNDER_DELIVERY                  AWAITING_APPROVAL
+   ↓ (cronjob on delivery date)
+FULFILLED
 
-**Port conflicts:**
-- MySQL: 3307
-- App: 8081
-- Temporal: 7233, 8088
-- Prometheus: 9090
-- Grafana: 8085
-- Jaeger: 16686
-
-**Reset database:**
-```bash
-docker-compose down -v
-docker-compose up -d
-mvn spring-boot:run
+CANCELED can happen from any status except FULFILLED, UNDER_DELIVERY, or CANCELED
 ```

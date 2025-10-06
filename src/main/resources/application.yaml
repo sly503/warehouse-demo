@@ -93,3 +93,7 @@ springdoc:
     try-it-out-enabled: true
     operations-sorter: method
     tags-sorter: alpha
+    default-models-expand-depth: 3
+    default-model-rendering: model
+    display-request-duration: true
+    doc-expansion: none
