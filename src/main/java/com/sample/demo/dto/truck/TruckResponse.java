@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TruckDTO {
+public class TruckResponse {
     private Long id;
     private String chassisNumber;
     private String licensePlate;

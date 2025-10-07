@@ -1,12 +1,14 @@
 package com.sample.demo.service;
 
-import com.sample.demo.dto.truck.CreateTruckRequest;
-import com.sample.demo.dto.truck.TruckDTO;
+import com.sample.demo.dto.truck.TruckRequest;
+import com.sample.demo.dto.truck.PatchTruckRequest;
+import com.sample.demo.dto.truck.TruckResponse;
 import com.sample.demo.exception.BadRequestException;
 import com.sample.demo.exception.DuplicateResourceException;
 import com.sample.demo.exception.ResourceNotFoundException;
 import com.sample.demo.model.entity.Truck;
 import com.sample.demo.repository.TruckRepository;
+import com.sample.demo.util.PatchUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,14 +24,14 @@ public class TruckService {
     private final TruckRepository truckRepository;
 
     @Transactional(readOnly = true)
-    public Page<TruckDTO> getAllTrucks(Pageable pageable) {
+    public Page<TruckResponse> getAllTrucks(Pageable pageable) {
         log.info("Fetching all trucks with pagination");
         return truckRepository.findAll(pageable)
                 .map(this::mapToDTO);
     }
 
     @Transactional(readOnly = true)
-    public TruckDTO getTruckById(Long id) {
+    public TruckResponse getTruckById(Long id) {
         log.info("Fetching truck with id: {}", id);
         Truck truck = truckRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Truck", "id", id));
@@ -37,7 +39,7 @@ public class TruckService {
     }
 
     @Transactional
-    public TruckDTO createTruck(CreateTruckRequest request) {
+    public TruckResponse createTruck(TruckRequest request) {
         log.info("Creating new truck with chassis number: {}", request.getChassisNumber());
 
         // Validate container volume
@@ -67,7 +69,7 @@ public class TruckService {
     }
 
     @Transactional
-    public TruckDTO updateTruck(Long id, CreateTruckRequest request) {
+    public TruckResponse updateTruck(Long id, TruckRequest request) {
         log.info("Updating truck with id: {}", id);
 
         Truck truck = truckRepository.findById(id)
@@ -101,6 +103,31 @@ public class TruckService {
     }
 
     @Transactional
+    public TruckResponse patchTruck(Long id, PatchTruckRequest request) {
+        log.info("Partially updating truck with id: {}", id);
+
+        Truck truck = truckRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Truck", "id", id));
+
+        if (request.getChassisNumber() != null && !truck.getChassisNumber().equals(request.getChassisNumber())
+                && truckRepository.existsByChassisNumber(request.getChassisNumber())) {
+            throw new DuplicateResourceException("Truck", "chassisNumber", request.getChassisNumber());
+        }
+
+        if (request.getLicensePlate() != null && !truck.getLicensePlate().equals(request.getLicensePlate())
+                && truckRepository.existsByLicensePlate(request.getLicensePlate())) {
+            throw new DuplicateResourceException("Truck", "licensePlate", request.getLicensePlate());
+        }
+
+        PatchUtil.copyNonNullProperties(request, truck);
+
+        Truck updatedTruck = truckRepository.save(truck);
+        log.info("Truck partially updated successfully with id: {}", updatedTruck.getId());
+
+        return mapToDTO(updatedTruck);
+    }
+
+    @Transactional
     public void deleteTruck(Long id) {
         log.info("Deleting truck with id: {}", id);
 
@@ -112,8 +139,8 @@ public class TruckService {
         log.info("Truck deleted successfully with id: {}", id);
     }
 
-    private TruckDTO mapToDTO(Truck truck) {
-        return TruckDTO.builder()
+    private TruckResponse mapToDTO(Truck truck) {
+        return TruckResponse.builder()
                 .id(truck.getId())
                 .chassisNumber(truck.getChassisNumber())
                 .licensePlate(truck.getLicensePlate())

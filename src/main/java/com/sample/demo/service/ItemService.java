@@ -1,11 +1,13 @@
 package com.sample.demo.service;
 
-import com.sample.demo.dto.item.CreateItemRequest;
-import com.sample.demo.dto.item.ItemDTO;
+import com.sample.demo.dto.item.ItemRequest;
+import com.sample.demo.dto.item.ItemResponse;
+import com.sample.demo.dto.item.PatchItemRequest;
 import com.sample.demo.exception.BadRequestException;
 import com.sample.demo.exception.ResourceNotFoundException;
 import com.sample.demo.model.entity.Item;
 import com.sample.demo.repository.ItemRepository;
+import com.sample.demo.util.PatchUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,14 +23,14 @@ public class ItemService {
     private final ItemRepository itemRepository;
 
     @Transactional(readOnly = true)
-    public Page<ItemDTO> getAllItems(Pageable pageable) {
+    public Page<ItemResponse> getAllItems(Pageable pageable) {
         log.info("Fetching all items with pagination");
         return itemRepository.findAll(pageable)
                 .map(this::mapToDTO);
     }
 
     @Transactional(readOnly = true)
-    public ItemDTO getItemById(Long id) {
+    public ItemResponse getItemById(Long id) {
         log.info("Fetching item with id: {}", id);
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
@@ -36,7 +38,7 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemDTO createItem(CreateItemRequest request) {
+    public ItemResponse createItem(ItemRequest request) {
         log.info("Creating new item with name: {}", request.getItemName());
 
         if (request.getQuantity() < 0) {
@@ -66,7 +68,7 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemDTO updateItem(Long id, CreateItemRequest request) {
+    public ItemResponse updateItem(Long id, ItemRequest request) {
         log.info("Updating item with id: {}", id);
 
         Item item = itemRepository.findById(id)
@@ -98,6 +100,21 @@ public class ItemService {
     }
 
     @Transactional
+    public ItemResponse patchItem(Long id, PatchItemRequest request) {
+        log.info("Partially updating item with id: {}", id);
+
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Item", "id", id));
+
+        PatchUtil.copyNonNullProperties(request, item);
+
+        Item updatedItem = itemRepository.save(item);
+        log.info("Item partially updated successfully with id: {}", updatedItem.getId());
+
+        return mapToDTO(updatedItem);
+    }
+
+    @Transactional
     public void deleteItem(Long id) {
         log.info("Deleting item with id: {}", id);
 
@@ -109,8 +126,8 @@ public class ItemService {
         log.info("Item deleted successfully with id: {}", id);
     }
 
-    private ItemDTO mapToDTO(Item item) {
-        return ItemDTO.builder()
+    private ItemResponse mapToDTO(Item item) {
+        return ItemResponse.builder()
                 .id(item.getId())
                 .itemName(item.getItemName())
                 .quantity(item.getQuantity())

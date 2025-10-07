@@ -1,9 +1,11 @@
 package com.sample.demo.exception;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.sample.demo.dto.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
@@ -87,6 +89,20 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex, WebRequest request) {
         log.error("Illegal argument: {}", ex.getMessage());
         ApiResponse<Void> response = ApiResponse.error(ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex, WebRequest request) {
+        log.error("JSON parse error: {}", ex.getMessage());
+
+        String message = "Invalid JSON format";
+        if (ex.getCause() instanceof JsonParseException) {
+            message = "Invalid JSON format. Please ensure numbers don't contain spaces or special characters.";
+        }
+
+        ApiResponse<Void> response = ApiResponse.error(message);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 

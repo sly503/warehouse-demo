@@ -26,4 +26,5 @@ public class OrderDTO {
     private DeliveryDTO delivery;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<OrderWarning> warnings;
 }

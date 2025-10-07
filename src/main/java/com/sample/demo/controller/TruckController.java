@@ -1,8 +1,9 @@
 package com.sample.demo.controller;
 
 import com.sample.demo.dto.common.ApiResponse;
-import com.sample.demo.dto.truck.CreateTruckRequest;
-import com.sample.demo.dto.truck.TruckDTO;
+import com.sample.demo.dto.truck.TruckRequest;
+import com.sample.demo.dto.truck.PatchTruckRequest;
+import com.sample.demo.dto.truck.TruckResponse;
 import com.sample.demo.service.TruckService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,7 +33,7 @@ public class TruckController {
 
     @GetMapping
     @Operation(summary = "Get all trucks", description = "Get all trucks with pagination")
-    public ResponseEntity<ApiResponse<Page<TruckDTO>>> getAllTrucks(
+    public ResponseEntity<ApiResponse<Page<TruckResponse>>> getAllTrucks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -41,31 +42,41 @@ public class TruckController {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<TruckDTO> trucks = truckService.getAllTrucks(pageable);
+        Page<TruckResponse> trucks = truckService.getAllTrucks(pageable);
         return ResponseEntity.ok(ApiResponse.success("Trucks fetched successfully", trucks));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get truck by ID", description = "Get a specific truck by its ID")
-    public ResponseEntity<ApiResponse<TruckDTO>> getTruckById(@PathVariable Long id) {
-        TruckDTO truck = truckService.getTruckById(id);
+    public ResponseEntity<ApiResponse<TruckResponse>> getTruckById(@PathVariable Long id) {
+        TruckResponse truck = truckService.getTruckById(id);
         return ResponseEntity.ok(ApiResponse.success("Truck fetched successfully", truck));
     }
 
     @PostMapping
     @Operation(summary = "Create new truck", description = "Register a new truck in the system")
-    public ResponseEntity<ApiResponse<TruckDTO>> createTruck(@Valid @RequestBody CreateTruckRequest request) {
-        TruckDTO truck = truckService.createTruck(request);
+    public ResponseEntity<ApiResponse<TruckResponse>> createTruck(@Valid @RequestBody TruckRequest request) {
+        TruckResponse truck = truckService.createTruck(request);
         return new ResponseEntity<>(ApiResponse.success("Truck created successfully", truck), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update truck", description = "Update an existing truck")
-    public ResponseEntity<ApiResponse<TruckDTO>> updateTruck(
+    public ResponseEntity<ApiResponse<TruckResponse>> updateTruck(
             @PathVariable Long id,
-            @Valid @RequestBody CreateTruckRequest request) {
+            @Valid @RequestBody TruckRequest request) {
 
-        TruckDTO truck = truckService.updateTruck(id, request);
+        TruckResponse truck = truckService.updateTruck(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Truck updated successfully", truck));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Update truck (partial)", description = "Update specific fields only")
+    public ResponseEntity<ApiResponse<TruckResponse>> patchTruck(
+            @PathVariable Long id,
+            @Valid @RequestBody PatchTruckRequest request) {
+
+        TruckResponse truck = truckService.patchTruck(id, request);
         return ResponseEntity.ok(ApiResponse.success("Truck updated successfully", truck));
     }
 

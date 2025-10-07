@@ -1,11 +1,13 @@
 package com.sample.demo.service;
 
-import com.sample.demo.dto.user.UserCreateRequest;
+import com.sample.demo.dto.user.PatchUserRequest;
+import com.sample.demo.dto.user.UserRequest;
 import com.sample.demo.dto.user.UserResponse;
 import com.sample.demo.exception.DuplicateResourceException;
 import com.sample.demo.exception.ResourceNotFoundException;
 import com.sample.demo.model.entity.User;
 import com.sample.demo.repository.UserRepository;
+import com.sample.demo.util.PatchUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,7 +40,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse createUser(UserCreateRequest request) {
+    public UserResponse createUser(UserRequest request) {
         log.info("Creating new user with username: {}", request.getUsername());
 
         // Check if username already exists
@@ -67,7 +69,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateUser(Long id, UserCreateRequest request) {
+    public UserResponse updateUser(Long id, UserRequest request) {
         log.info("Updating user with id: {}", id);
 
         User user = userRepository.findById(id)
@@ -96,6 +98,35 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
         log.info("User updated successfully with id: {}", updatedUser.getId());
+
+        return mapToResponse(updatedUser);
+    }
+
+    @Transactional
+    public UserResponse patchUser(Long id, PatchUserRequest request) {
+        log.info("Partially updating user with id: {}", id);
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        if (request.getUsername() != null && !user.getUsername().equals(request.getUsername())
+                && userRepository.existsByUsername(request.getUsername())) {
+            throw new DuplicateResourceException("User", "username", request.getUsername());
+        }
+
+        if (request.getEmail() != null && !user.getEmail().equals(request.getEmail())
+                && userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("User", "email", request.getEmail());
+        }
+
+        if (request.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        PatchUtil.copyNonNullProperties(request, user);
+
+        User updatedUser = userRepository.save(user);
+        log.info("User partially updated successfully with id: {}", updatedUser.getId());
 
         return mapToResponse(updatedUser);
     }

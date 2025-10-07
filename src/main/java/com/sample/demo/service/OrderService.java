@@ -29,6 +29,7 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final TruckRepository truckRepository;
     private final DeliveryRepository deliveryRepository;
+    private final SystemConfigService configService;
 
     // ==================== CLIENT OPERATIONS ====================
 
@@ -44,7 +45,6 @@ public class OrderService {
         order.setStatus(OrderStatus.CREATED);
         order.setDeadlineDate(request.getDeadlineDate());
 
-        // Add order items
         for (OrderItemRequest itemRequest : request.getOrderItems()) {
             Item item = itemRepository.findById(itemRequest.getItemId())
                     .orElseThrow(() -> new ResourceNotFoundException("Item", "id", itemRequest.getItemId()));
@@ -69,15 +69,12 @@ public class OrderService {
 
         Order order = getOrderByIdAndClient(orderId, username);
 
-        // Validate order status
         if (order.getStatus() != OrderStatus.CREATED && order.getStatus() != OrderStatus.DECLINED) {
             throw new BadRequestException("Order can only be updated when status is CREATED or DECLINED");
         }
 
-        // Clear existing items
         order.getOrderItems().clear();
 
-        // Add new items
         for (OrderItemRequest itemRequest : request.getOrderItems()) {
             Item item = itemRepository.findById(itemRequest.getItemId())
                     .orElseThrow(() -> new ResourceNotFoundException("Item", "id", itemRequest.getItemId()));
@@ -187,7 +184,9 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
-        return mapToDTO(order);
+        OrderDTO dto = mapToDTO(order);
+        dto.setWarnings(calculateOrderWarnings(order));
+        return dto;
     }
 
     @Transactional
@@ -281,40 +280,43 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<LocalDate> getAvailableDeliveryDates(Long orderId, int days) {
+    public List<LocalDate> getAvailableDeliveryDates(Long orderId) {
+        int days = configService.getDeliveryPeriod();
         log.info("Fetching available delivery dates for order: {} for {} days", orderId, days);
-
-        if (days < 3 || days > 30) {
-            throw new BadRequestException("Period must be between 3 and 30 days");
-        }
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
 
-        if (order.getStatus() != OrderStatus.APPROVED) {
-            throw new BadRequestException("Only APPROVED orders can be scheduled for delivery");
-        }
-
-        // Calculate total volume
         double totalVolume = order.getOrderItems().stream()
                 .mapToDouble(OrderItem::getTotalVolume)
                 .sum();
 
+        List<Truck> allTrucks = truckRepository.findAll();
+        double maxCapacity = allTrucks.stream()
+                .mapToDouble(Truck::getContainerVolume)
+                .sum();
+
+        if (totalVolume > maxCapacity) {
+            throw new BadRequestException(
+                "Order volume (" + totalVolume + ") exceeds total truck capacity (" + maxCapacity +
+                "). Cannot schedule delivery."
+            );
+        }
+
         List<LocalDate> availableDates = new ArrayList<>();
         LocalDate currentDate = LocalDate.now().plusDays(1);
+        LocalDate endDate = currentDate.plusDays(days - 1);
 
-        for (int i = 0; i < days; i++) {
-            LocalDate checkDate = currentDate.plusDays(i);
+        if (order.getDeadlineDate() != null && endDate.isAfter(order.getDeadlineDate())) {
+            endDate = order.getDeadlineDate();
+        }
 
-            // Skip weekends
-            if (isWeekend(checkDate)) {
-                continue;
-            }
-
-            // Check if there are available trucks with sufficient capacity
-            if (hasAvailableTrucksForDate(checkDate, totalVolume)) {
+        LocalDate checkDate = currentDate;
+        while (!checkDate.isAfter(endDate)) {
+            if (!isWeekend(checkDate) && hasAvailableTrucksForDate(checkDate, totalVolume)) {
                 availableDates.add(checkDate);
             }
+            checkDate = checkDate.plusDays(1);
         }
 
         log.info("Found {} available delivery dates", availableDates.size());
@@ -484,5 +486,104 @@ public class OrderService {
                 .completedAt(delivery.getCompletedAt())
                 .notes(delivery.getNotes())
                 .build();
+    }
+
+    private List<OrderWarning> calculateOrderWarnings(Order order) {
+        List<OrderWarning> warnings = new ArrayList<>();
+
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Item item = orderItem.getItem();
+            if (orderItem.getRequestedQuantity() > item.getQuantity()) {
+                warnings.add(OrderWarning.builder()
+                        .type("INSUFFICIENT_INVENTORY")
+                        .severity("WARNING")
+                        .message(String.format("Item '%s': requested %d, currently available %d",
+                                item.getItemName(),
+                                orderItem.getRequestedQuantity(),
+                                item.getQuantity()))
+                        .build());
+            }
+        }
+
+        double orderVolume = order.getOrderItems().stream()
+                .mapToDouble(OrderItem::getTotalVolume)
+                .sum();
+
+        List<Truck> allTrucks = truckRepository.findAll();
+
+        if (allTrucks.isEmpty()) {
+            warnings.add(OrderWarning.builder()
+                    .type("NO_TRUCKS_AVAILABLE")
+                    .severity("ERROR")
+                    .message("No trucks available in the system")
+                    .build());
+        } else {
+            double totalTruckCapacity = allTrucks.stream()
+                    .mapToDouble(Truck::getContainerVolume)
+                    .sum();
+
+            if (orderVolume > totalTruckCapacity) {
+                warnings.add(OrderWarning.builder()
+                        .type("INSUFFICIENT_CAPACITY")
+                        .severity("ERROR")
+                        .message(String.format("Order volume %.2f exceeds total truck capacity %.2f",
+                                orderVolume, totalTruckCapacity))
+                        .build());
+            } else {
+                double largestTruckCapacity = allTrucks.stream()
+                        .mapToDouble(Truck::getContainerVolume)
+                        .max()
+                        .orElse(0.0);
+
+                if (orderVolume > largestTruckCapacity) {
+                    warnings.add(OrderWarning.builder()
+                            .type("MULTIPLE_TRUCKS_REQUIRED")
+                            .severity("INFO")
+                            .message(String.format("Order volume %.2f exceeds largest single truck capacity %.2f. Multiple trucks required.",
+                                    orderVolume, largestTruckCapacity))
+                            .build());
+                }
+            }
+        }
+
+        if (order.getDeadlineDate() != null) {
+            LocalDate today = LocalDate.now();
+            long daysUntilDeadline = java.time.temporal.ChronoUnit.DAYS.between(today, order.getDeadlineDate());
+
+            if (daysUntilDeadline < 0) {
+                warnings.add(OrderWarning.builder()
+                        .type("DEADLINE_PASSED")
+                        .severity("ERROR")
+                        .message("Deadline has already passed")
+                        .build());
+            } else if (daysUntilDeadline <= 3) {
+                warnings.add(OrderWarning.builder()
+                        .type("DEADLINE_TIGHT")
+                        .severity("WARNING")
+                        .message(String.format("Deadline in %d day(s), limited delivery windows", daysUntilDeadline))
+                        .build());
+            }
+        }
+
+        try {
+            List<LocalDate> availableDates = getAvailableDeliveryDates(order.getId());
+            if (availableDates.isEmpty()) {
+                warnings.add(OrderWarning.builder()
+                        .type("NO_DELIVERY_SLOTS")
+                        .severity("ERROR")
+                        .message("No available delivery slots. All trucks are scheduled or insufficient capacity on available dates.")
+                        .build());
+            }
+        } catch (BadRequestException e) {
+            warnings.add(OrderWarning.builder()
+                    .type("NO_DELIVERY_SLOTS")
+                    .severity("ERROR")
+                    .message("No available delivery slots. " + e.getMessage())
+                    .build());
+        } catch (Exception e) {
+            log.debug("Could not calculate available delivery dates for warnings", e);
+        }
+
+        return warnings;
     }
 }

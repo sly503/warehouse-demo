@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class CreateItemRequest {
+public class ItemRequest {
 
     @NotBlank(message = "Item name is required")
     @Size(max = 100, message = "Item name must not exceed 100 characters")

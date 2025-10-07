@@ -4,7 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
-public class CreateTruckRequest {
+public class TruckRequest {
 
     @NotBlank(message = "Chassis number is required")
     @Size(max = 50, message = "Chassis number must not exceed 50 characters")

@@ -1,7 +1,8 @@
 package com.sample.demo.controller;
 
 import com.sample.demo.dto.common.ApiResponse;
-import com.sample.demo.dto.user.UserCreateRequest;
+import com.sample.demo.dto.user.PatchUserRequest;
+import com.sample.demo.dto.user.UserRequest;
 import com.sample.demo.dto.user.UserResponse;
 import com.sample.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,7 +55,7 @@ public class UserController {
 
     @PostMapping
     @Operation(summary = "Create new user", description = "Create a new user account")
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody UserCreateRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse user = userService.createUser(request);
         return new ResponseEntity<>(ApiResponse.success("User created successfully", user), HttpStatus.CREATED);
     }
@@ -63,9 +64,19 @@ public class UserController {
     @Operation(summary = "Update user", description = "Update an existing user")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable Long id,
-            @Valid @RequestBody UserCreateRequest request) {
+            @Valid @RequestBody UserRequest request) {
 
         UserResponse user = userService.updateUser(id, request);
+        return ResponseEntity.ok(ApiResponse.success("User updated successfully", user));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Update user (partial)", description = "Update specific fields only")
+    public ResponseEntity<ApiResponse<UserResponse>> patchUser(
+            @PathVariable Long id,
+            @Valid @RequestBody PatchUserRequest request) {
+
+        UserResponse user = userService.patchUser(id, request);
         return ResponseEntity.ok(ApiResponse.success("User updated successfully", user));
     }
 

@@ -175,12 +175,9 @@ public class OrderController {
     @GetMapping("/manager/orders/{orderId}/available-delivery-dates")
     @Operation(summary = "Get available delivery dates", description = "Get available delivery dates for an order within a specified period (3-30 days) (WAREHOUSE_MANAGER only)")
     @PreAuthorize("hasRole('WAREHOUSE_MANAGER')")
-    public ResponseEntity<ApiResponse<List<LocalDate>>> getAvailableDeliveryDates(
-            @PathVariable Long orderId,
-            @RequestParam(defaultValue = "7") int days) {
-
-        log.info("Fetching available delivery dates for order: {} for {} days", orderId, days);
-        List<LocalDate> availableDates = orderService.getAvailableDeliveryDates(orderId, days);
+    public ResponseEntity<ApiResponse<List<LocalDate>>> getAvailableDeliveryDates(@PathVariable Long orderId) {
+        log.info("Fetching available delivery dates for order: {}", orderId);
+        List<LocalDate> availableDates = orderService.getAvailableDeliveryDates(orderId);
         return ResponseEntity.ok(ApiResponse.success("Available delivery dates fetched successfully", availableDates));
     }
 }
