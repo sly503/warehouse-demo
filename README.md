@@ -8,32 +8,27 @@
 - MySQL
 - Log4j2
 - Swagger/OpenAPI
-- Temporal.io workflows
 - Docker Compose
 
 ## Quick Start
 
 ```bash
-# Run application
-mvn spring-boot:run
-```
-```bash
-# Graceful shutdown
-curl 'http://localhost:8081/actuator/shutdown' -i -X POST
+# Start all services (MySQL + Spring Boot App)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+
+# Stop all services
+docker-compose down
 ```
 
 ## Access Points
 
-| Service | URL | Notes                |
-|---------|-----|----------------------|
-| API | http://localhost:8081 | Main application     |
-| Swagger UI | http://localhost:8081/swagger-ui.html | API documentation    |
-| Temporal UI | http://localhost:8088 | Workflow monitoring  |
-| Jaeger | http://localhost:16686 | Distributed tracing  |
-| Grafana | http://localhost:8085 | Metrics dashboards   |
-| Prometheus | http://localhost:9090 | Metrics queries |
-| Prometheus | http://localhost:8081/actuator/prometheus | Prometheus Metrics     |
-| Worker Info | http://localhost:8081/actuator/temporalworkerinfo | Temporal worker info |
+| Service | URL |
+|---------|-----|
+| API | http://localhost:8081 |
+| Swagger UI | http://localhost:8081/swagger-ui.html |
 
 ## Demo Users
 

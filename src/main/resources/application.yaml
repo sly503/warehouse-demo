@@ -15,11 +15,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
+    open-in-view: false
 
   sql:
     init:
@@ -28,30 +29,6 @@ spring:
 
   main:
     allow-bean-definition-overriding: true
-
-  temporal:
-    namespace: default
-    connection:
-      target: localhost:7233
-      enable-https: false
-    workersAutoDiscovery:
-      packages: com.sample.demo
-    workers:
-      - task-queue: demoqueue-two
-        capacity:
-          max-concurrent-activity-executors: 2
-        rate-limits:
-          max-worker-activities-per-second: 2
-      - task-queue: order-workflow-worker
-        capacity:
-          max-concurrent-activity-executors: 5
-        rate-limits:
-          max-worker-activities-per-second: 10
-  # docker deployment
-  docker:
-    compose:
-      enabled: true
-      file: docker-compose.yml
 
 jwt:
   secret: mySecretKeyThatIsAtLeast256BitsLongForHS256AlgorithmRequirement12345
@@ -63,22 +40,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus,temporalworkerinfo,scheduledtasks,shutdown
-    health:
-      group:
-        liveness:
-          include: livenessstate,cacheCheck
-      probes:
-        enabled: true
-  tracing:
-    sampling:
-      probability: 1.0
-    enabled: true
+        include: health,scheduledtasks
   endpoint:
-    shutdown:
-      access: unrestricted
-tracing:
-  url: http://localhost:4317
+    health:
+      show-details: always
 
 # Logging is configured via log4j2.xml
 

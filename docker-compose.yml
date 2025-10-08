@@ -1,22 +1,4 @@
 services:
-  elasticsearch:
-    container_name: temporal-elasticsearch
-    image: elasticsearch:7.17.10
-    environment:
-      - cluster.routing.allocation.disk.threshold_enabled=true
-      - cluster.routing.allocation.disk.watermark.low=512mb
-      - cluster.routing.allocation.disk.watermark.high=256mb
-      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
-      - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
-    volumes:
-      - temporal-elasticsearch:/var/lib/elasticsearch/data
-    networks:
-      - temporal-network
-
   mysql:
     container_name: warehouse-mysql
     image: mysql:8.0
@@ -30,119 +12,35 @@ services:
     volumes:
       - warehouse-mysql:/var/lib/mysql
     networks:
-      - temporal-network
+      - warehouse-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "warehouse", "-pwarehouse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  postgresql:
-    container_name: temporal-postgresql
-    image: postgres:13
-    environment:
-      POSTGRES_USER: temporal
-      POSTGRES_PASSWORD: temporal
-      POSTGRES_DB: temporal
+  app:
+    container_name: warehouse-app
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "5432:5432"
-    volumes:
-      - temporal-postgresql:/var/lib/postgresql/data
+      - "8081:8081"
+    environment:
+      # Override database connection for Docker environment
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/warehouse
+      SPRING_DATASOURCE_USERNAME: warehouse
+      SPRING_DATASOURCE_PASSWORD: warehouse
     networks:
-      - temporal-network
-
-  temporal:
-    container_name: temporal
-    image: temporalio/auto-setup:latest
+      - warehouse-network
     depends_on:
-      - postgresql
-      - elasticsearch
-    environment:
-      - DB=postgres12
-      - DB_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=postgresql
-      - ENABLE_ES=true
-      - ES_SEEDS=elasticsearch
-      - ES_VERSION=v7
-    ports:
-      - "7233:7233"
-    networks:
-      - temporal-network
-
-  temporal-admin-tools:
-    container_name: temporal-admin-tools
-    image: temporalio/admin-tools:latest
-    depends_on:
-      - temporal
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
-    stdin_open: true
-    tty: true
-    networks:
-      - temporal-network
-
-  temporal-ui:
-    container_name: temporal-ui
-    image: temporalio/ui:latest
-    depends_on:
-      - temporal
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://localhost:8081
-    ports:
-      - "8088:8080"
-    networks:
-      - temporal-network
-
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:v2.48.0
-    command: --config.file=/etc/prometheus/prometheus.yml --log.level=error
-    ports:
-      - published: 9090
-        target: 9090
-    volumes:
-      - type: bind
-        source: ./deployment/prometheus/config.yml
-        target: /etc/prometheus/prometheus.yml
-  grafana:
-    container_name: grafana
-    image: grafana/grafana:9.5.2
-    environment:
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-    ports:
-      - published: 8085
-        target: 3000
-    volumes:
-      - type: bind
-        source: ./deployment/grafana/dashboards
-        target: /var/lib/grafana/dashboards
-      - type: bind
-        source: ./deployment/grafana/provisioning/dashboards
-        target: /etc/grafana/provisioning/dashboards
-      - type: bind
-        source: ./deployment/grafana/provisioning/datasources
-        target: /etc/grafana/provisioning/datasources
-      - type: bind
-        source: ./deployment/grafana/grafana.ini
-        target: /etc/grafana/grafana.ini
-    depends_on:
-      - prometheus
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - "16686:16686" # the jaeger UI port
-      - "4317:4317" # the open telemetry grpc port for sending traces
-      - "4318:4318"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-      - LOG_LEVEL=error
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
 
 networks:
-  temporal-network:
+  warehouse-network:
     driver: bridge
 
 volumes:
   warehouse-mysql:
-  temporal-postgresql:
-  temporal-elasticsearch:
