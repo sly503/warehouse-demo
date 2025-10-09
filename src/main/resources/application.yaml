@@ -7,9 +7,9 @@ spring:
     name: warehouse-demo
 
   datasource:
-    url: jdbc:mysql://localhost:3307/warehouse
-    username: warehouse
-    password: warehouse
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/warehouse}
+    username: ${SPRING_DATASOURCE_USERNAME:warehouse}
+    password: ${SPRING_DATASOURCE_PASSWORD:warehouse}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -19,6 +19,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
     defer-datasource-initialization: true
     open-in-view: false
 

@@ -33,3 +33,8 @@ build/
 
 ### Claude Code ###
 .claude/
+
+### Application Logs ###
+logs/
+*.log
+*.log.gz

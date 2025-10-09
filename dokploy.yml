@@ -1,0 +1,45 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: warehouse
+      MYSQL_USER: warehouse
+      MYSQL_PASSWORD: warehouse
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - warehouse-mysql:/var/lib/mysql
+    networks:
+      - dokploy-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/warehouse?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: warehouse
+      SPRING_DATASOURCE_PASSWORD: warehouse
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+    networks:
+      - dokploy-network
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lh-app-dgccqd.rule=Host(`lh-app-dgccqd-8865f7-165-227-167-19.traefik.me`)"
+      - "traefik.http.routers.lh-app-dgccqd.entrypoints=web"
+      - "traefik.http.services.lh-app-dgccqd.loadbalancer.server.port=8081"
+
+networks:
+  dokploy-network:
+    external: true
+    
+volumes:
+  warehouse-mysql:
