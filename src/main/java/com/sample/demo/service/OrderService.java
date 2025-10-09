@@ -395,18 +395,26 @@ public class OrderService {
 
     private void updateInventoryQuantities(Order order) {
         for (OrderItem orderItem : order.getOrderItems()) {
-            Item item = orderItem.getItem();
-            int newQuantity = item.getQuantity() - orderItem.getRequestedQuantity();
+            Long itemId = orderItem.getItem().getId();
+            Integer requestedQty = orderItem.getRequestedQuantity();
 
-            if (newQuantity < 0) {
-                throw new BadRequestException("Insufficient inventory for item: " + item.getItemName());
+            // Atomic decrement - prevents race conditions
+            int rowsUpdated = itemRepository.decrementQuantity(itemId, requestedQty);
+
+            if (rowsUpdated == 0) {
+                // Fetch current item to provide accurate error message
+                Item item = itemRepository.findById(itemId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Item", "id", itemId));
+
+                log.warn("Insufficient inventory for item {}: available={}, requested={}",
+                        item.getItemName(), item.getQuantity(), requestedQty);
+
+                throw new BadRequestException(String.format(
+                        "Insufficient inventory for %s. Available: %d, Requested: %d",
+                        item.getItemName(), item.getQuantity(), requestedQty));
             }
 
-            item.setQuantity(newQuantity);
-            itemRepository.save(item);
-
-            log.info("Updated inventory for item {}: {} -> {}",
-                    item.getItemName(), item.getQuantity() + orderItem.getRequestedQuantity(), newQuantity);
+            log.info("Decremented inventory for item ID {} by {} units", itemId, requestedQty);
         }
     }
 

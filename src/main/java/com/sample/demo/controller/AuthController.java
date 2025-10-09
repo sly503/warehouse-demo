@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -46,6 +48,8 @@ public class AuthController {
             String jwt = jwtUtils.generateToken(userDetails);
             String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
+            log.info("Successful login: user='{}', role={}", userDetails.getUsername(), userDetails.getRole());
+
             return ResponseEntity.ok(JwtResponse.builder()
                     .token(jwt)
                     .refreshToken(refreshToken)
@@ -55,6 +59,7 @@ public class AuthController {
                     .role(userDetails.getRole())
                     .build());
         } catch (Exception e) {
+            log.warn("Failed login attempt: username='{}'", loginRequest.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid username or password");
         }
@@ -84,16 +89,6 @@ public class AuthController {
             // Invalid refresh token
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
-    }
-
-    @PostMapping("/logout")
-    @Operation(summary = "Logout user", description = "Logout current user and invalidate token")
-    public ResponseEntity<?> logoutUser() {
-        // In a stateless JWT setup, logout is typically handled client-side
-        // The client should remove the token from storage
-        // Optionally, you can maintain a token blacklist on the server
-        SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Logged out successfully!");
     }
 
     @GetMapping("/me")

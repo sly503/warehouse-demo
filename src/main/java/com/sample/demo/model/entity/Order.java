@@ -24,6 +24,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @Column(unique = true, nullable = false)
     private String orderNumber;
 
@@ -61,6 +64,9 @@ public class Order {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (version == null) {
+            version = 0L;
+        }
         if (orderNumber == null) {
             // Generate order number format: ORD-YYYYMMDD-XXXXX
             orderNumber = String.format("ORD-%s-%05d",

@@ -19,6 +19,9 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false)
     private String itemName;
 
@@ -43,6 +46,9 @@ public class Item {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (version == null) {
+            version = 0L;
+        }
     }
 
     @PreUpdate

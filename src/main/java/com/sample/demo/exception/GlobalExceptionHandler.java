@@ -2,6 +2,7 @@ package com.sample.demo.exception;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.sample.demo.dto.common.ApiResponse;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(
             BadCredentialsException ex, WebRequest request) {
-        log.error("Bad credentials: {}", ex.getMessage());
+        log.warn("Authentication failed: bad credentials");
         ApiResponse<Void> response = ApiResponse.error("Invalid username or password");
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
@@ -65,7 +66,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(
             AccessDeniedException ex, WebRequest request) {
-        log.error("Access denied: {}", ex.getMessage());
+        log.warn("Access denied: user attempted to access unauthorized resource - {}", request.getDescription(false));
         ApiResponse<Void> response = ApiResponse.error("You don't have permission to access this resource");
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
@@ -104,6 +105,15 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Void> response = ApiResponse.error(message);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockException(
+            OptimisticLockException ex, WebRequest request) {
+        log.warn("Optimistic lock conflict detected: {}", ex.getMessage());
+        ApiResponse<Void> response = ApiResponse.error(
+                "This resource was modified by another user. Please refresh and try again.");
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(Exception.class)

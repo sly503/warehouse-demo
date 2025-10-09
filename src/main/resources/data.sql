@@ -14,18 +14,18 @@ INSERT INTO users (username, password, email, first_name, last_name, role, enabl
 VALUES ('client1', '$2a$10$jmXxiiMvjFe0MYxpr4EdZuhgWfI128hFR/wNhmB1iUEDSfMq3Tiz.', 'client1@warehouse.com', 'Client', 'User', 'CLIENT', true, true, true, true, NOW(), NOW());
 
 -- Insert sample items with different volumes and prices
-INSERT INTO items (item_name, quantity, unit_price, package_volume, description, sku, created_at, updated_at)
+INSERT INTO items (item_name, quantity, unit_price, package_volume, description, sku, version, created_at, updated_at)
 VALUES
-    ('Laptop Computer', 50, 899.99, 0.015, 'High-performance business laptop', 'SKU-LAPTOP-001', NOW(), NOW()),
-    ('Office Chair', 120, 299.99, 0.25, 'Ergonomic office chair with lumbar support', 'SKU-CHAIR-001', NOW(), NOW()),
-    ('Standing Desk', 30, 599.99, 0.35, 'Electric height-adjustable standing desk', 'SKU-DESK-001', NOW(), NOW()),
-    ('Monitor 27"', 75, 399.99, 0.08, '27-inch 4K LED monitor', 'SKU-MONITOR-001', NOW(), NOW()),
-    ('Wireless Mouse', 200, 29.99, 0.002, 'Bluetooth wireless optical mouse', 'SKU-MOUSE-001', NOW(), NOW()),
-    ('Mechanical Keyboard', 150, 129.99, 0.006, 'RGB mechanical gaming keyboard', 'SKU-KEYBOARD-001', NOW(), NOW()),
-    ('Printer All-in-One', 25, 499.99, 0.15, 'Multifunction color laser printer', 'SKU-PRINTER-001', NOW(), NOW()),
-    ('External SSD 1TB', 100, 159.99, 0.001, 'Portable solid-state drive 1TB', 'SKU-SSD-001', NOW(), NOW()),
-    ('Webcam HD', 80, 79.99, 0.003, 'Full HD 1080p webcam with microphone', 'SKU-WEBCAM-001', NOW(), NOW()),
-    ('Office Phone', 40, 199.99, 0.005, 'VoIP business desk phone', 'SKU-PHONE-001', NOW(), NOW());
+    ('Laptop Computer', 50, 899.99, 0.015, 'High-performance business laptop', 'SKU-LAPTOP-001', 0, NOW(), NOW()),
+    ('Office Chair', 120, 299.99, 0.25, 'Ergonomic office chair with lumbar support', 'SKU-CHAIR-001', 0, NOW(), NOW()),
+    ('Standing Desk', 30, 599.99, 0.35, 'Electric height-adjustable standing desk', 'SKU-DESK-001', 0, NOW(), NOW()),
+    ('Monitor 27"', 75, 399.99, 0.08, '27-inch 4K LED monitor', 'SKU-MONITOR-001', 0, NOW(), NOW()),
+    ('Wireless Mouse', 200, 29.99, 0.002, 'Bluetooth wireless optical mouse', 'SKU-MOUSE-001', 0, NOW(), NOW()),
+    ('Mechanical Keyboard', 150, 129.99, 0.006, 'RGB mechanical gaming keyboard', 'SKU-KEYBOARD-001', 0, NOW(), NOW()),
+    ('Printer All-in-One', 25, 499.99, 0.15, 'Multifunction color laser printer', 'SKU-PRINTER-001', 0, NOW(), NOW()),
+    ('External SSD 1TB', 100, 159.99, 0.001, 'Portable solid-state drive 1TB', 'SKU-SSD-001', 0, NOW(), NOW()),
+    ('Webcam HD', 80, 79.99, 0.003, 'Full HD 1080p webcam with microphone', 'SKU-WEBCAM-001', 0, NOW(), NOW()),
+    ('Office Phone', 40, 199.99, 0.005, 'VoIP business desk phone', 'SKU-PHONE-001', 0, NOW(), NOW());
 
 -- Insert sample trucks with different container volumes
 INSERT INTO trucks (chassis_number, license_plate, container_volume, created_at, updated_at)

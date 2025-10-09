@@ -38,3 +38,6 @@ build/
 logs/
 *.log
 *.log.gz
+
+### Windows null device file (created by commands using /dev/null) ###
+nul

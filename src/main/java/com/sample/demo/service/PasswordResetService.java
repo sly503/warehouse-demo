@@ -80,10 +80,4 @@ public class PasswordResetService {
 
         log.info("Password reset successfully for user: {}", user.getUsername());
     }
-
-    @Transactional
-    public void cleanupExpiredTokens() {
-        log.info("Cleaning up expired password reset tokens");
-        tokenRepository.deleteByExpiryDateBefore(LocalDateTime.now());
-    }
 }
